@@ -11,22 +11,43 @@
     padding: 0;
 }
 
-
+/* ===== SECCIÓN DE BOOT CON EFECTO TUBO CRT ===== */
 #boot-screen {
     position: fixed;
     inset: 0;
-    background: black;
-    color: #00ff99;
+    background: #020a02;
+    /* 🟢 Un negro-verdoso muy oscuro para simular el fondo del cristal con energía */
+    color: #33ff33;
+    /* 🟢 Cambiado a tu verde fósforo de referencia */
     font-family: "Courier New", monospace;
     padding: 20px;
     font-size: 1.1rem;
     line-height: 1.3;
     z-index: 9999;
+
+    /* 🟢 CAPA 1: El resplandor (Glow) del tubo de rayos catódicos */
+    text-shadow:
+        0 0 4px rgba(51, 255, 51, 0.9),
+        0 0 10px rgba(51, 255, 51, 0.4);
+
+    /* 🟢 CAPA 2: Sombra interna masiva para crear el efecto viñeta (bordes curvos y oscuros del monitor) */
+    box-shadow:
+        inset 0 0 80px rgba(0, 0, 0, 0.95),
+        inset 0 0 20px rgba(51, 255, 51, 0.1);
+
+    /* 🟢 CAPA 3: Añadimos las líneas de escaneo (Scanlines) directamente de fondo en el boot */
+    background-image: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.3) 50%);
+    background-size: 100% 4px;
+    /* Grosor del barrido de electrones */
 }
 
 #boot-lines {
     white-space: pre-wrap;
+    /* 🟢 Un pelín de difuminado magnético al texto para que no sea un pixel digital perfecto */
+    filter: drop-shadow(0 0 1px rgba(51, 255, 51, 0.5));
 }
+
 
 .unix-header {
     font-family: "Courier New", monospace;
@@ -152,7 +173,8 @@ body.dharma-terminal {
 /* ===== CONTENEDOR PRINCIPAL ===== */
 .terminal-container {
     display: flex;
-    height: calc(100vh - 40px); /* Ajusta este número según el tamaño de tu cabecera */
+    height: calc(100vh - 40px);
+    /* Ajusta este número según el tamaño de tu cabecera */
     overflow: hidden;
     box-sizing: border-box;
 }
@@ -348,7 +370,8 @@ body.game-mode #visual-layer #game-info {
 }
 
 .celtigor-output {
-    color: whitesmoke;      /* verde neón elegante */
+    color: whitesmoke;
+    /* verde neón elegante */
     font-weight: 500;
 }
 
@@ -473,23 +496,31 @@ body.game-mode #visual-layer #game-info {
 
 /* Parpadeo CRT */
 @keyframes crt-cursor-blink {
-    0% { opacity: 1; }
-    45% { opacity: 1; }
-    50% { opacity: 0; }
-    95% { opacity: 0; }
-    100% { opacity: 1; }
+    0% {
+        opacity: 1;
+    }
+
+    45% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0;
+    }
+
+    95% {
+        opacity: 0;
+    }
+
+    100% {
+        opacity: 1;
+    }
 }
 
 .prompt {
-    color: #00ff88; /* verde fósforo */
+    color: #00ff88;
+    /* verde fósforo */
     font-weight: bold;
     margin-right: 6px;
     text-shadow: 0 0 4px #00ff88;
 }
-
-
-
-
-
-
-

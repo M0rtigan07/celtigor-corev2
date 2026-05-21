@@ -6,5 +6,9 @@
   "scripts": {
     "dev": "npx serve .",
     "build": "echo 'Sin compilación. Celtigor Core cargando directamente.'"
+  },
+  "dependencies": {
+    "better-sqlite3": "^12.10.0",
+    "express": "^5.2.1"
   }
 }

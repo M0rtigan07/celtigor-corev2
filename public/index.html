@@ -15,6 +15,8 @@
     <!-- BOOT SEQUENCE -->
     <div id="boot-screen">
         <audio id="ibm360-sound" src="./assets/boot.mp3" preload="auto"></audio>
+        <audio id="printer-sound" src="./assets/printer2.mp3" preload="auto"></audio>
+      
         <pre id="boot-lines"></pre>
     </div>
 
@@ -41,14 +43,14 @@
             <!-- COLUMNA DERECHA -->
             <aside class="sidebar-avatar">
                 <div id="celtigor-avatar" class="face-wrapper"></div>
-             
+
 
                 <div id="visual-layer">
                     <div id="image-display"></div>
                     <div id="game-info"></div>
                     <div class="scanline"></div>
                 </div>
-              
+
             </aside>
 
         </main>
@@ -56,7 +58,7 @@
         <!-- INPUT -->
         <div class="input-area">
             <span id="prompt" class="prompt"></span>
-            <input id="user-input" type="text" autocomplete="off" autofocus />
+            <input id="user-input" class="prompt-text" type="text" autocomplete="off" autofocus />
         </div>
 
     </div>
