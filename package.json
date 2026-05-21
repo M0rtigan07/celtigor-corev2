@@ -8,6 +8,7 @@
     "build": "echo 'Sin compilación. Celtigor Core cargando directamente.'"
   },
   "dependencies": {
+    "@libsql/client": "^0.17.3",
     "better-sqlite3": "^12.10.0",
     "express": "^5.2.1"
   }
