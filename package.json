@@ -4,12 +4,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "npx vite build",
-    "preview": "vite preview"
-  },
-  "dependencies": {},
-  "devDependencies": {
-    "vite": "^5.0.0"
+    "dev": "npx serve .",
+    "build": "echo 'Sin compilación. Celtigor Core cargando directamente.'"
   }
 }
