@@ -1,22 +1,18 @@
 // api/database.js
-import { createClient } from '@libsql/client';
+import { createClient } from "@libsql/client";
 
-// 🔌 CONFIGURACIÓN DE ENLACE HÍBRIDO
-// Si existe la variable de entorno de Turso (en Vercel), la usa. Si no, usa el archivo local.
-const urlConfig = process.env.TURSO_DATABASE_URL || "file:celtigor.db";
-const authTokenConfig = process.env.TURSO_AUTH_TOKEN || "eyJhbGciOiJFZERTQSIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE3NzkzNzgxNTcsImlkIjoiMDE5ZTRiMzMtZjUwMS03MGUyLTg5MjctZDA2YmYxN2MxNzZmIiwicmlkIjoiZjE1YmZjMjYtNTkxNC00YjIyLTkzYzItYTI4YTU4OWZmYjY2In0.C7eGkOqDoPARb3SB5oz_mhRimc0-VMOnJwbFqtJtNxeW1LUW-tCjrf4UpbiN0Ix8AVbW8sEseTq76eGNJKF0DQ";
-
+// 🔌 Conexión oficial directa con Turso usando tus variables de entorno
 const db = createClient({
-    url: urlConfig,
-    authToken: authTokenConfig
+    url: process.env.TURSO_DATABASE_URL,
+    authToken: process.env.TURSO_AUTH_TOKEN,
 });
 
-console.log(`=== MONITOR DE DATOS CONECTADO A: ${urlConfig} ===`);
+console.log("=== SISTEMA CONECTADO AL NÚCLEO DE TURSO DE FORMA DIRECTA ===");
 
-// Inicializamos la tabla usando el método correcto de libSQL (.execute)
-// Ponemos un await simulado dentro de un bloque autoejecutable por compatibilidad
+// Ejecutamos la creación de la tabla en segundo plano al arrancar el servidor
 (async () => {
     try {
+        // 1. Creamos la tabla de usuarios si no existe en tu base de datos de Turso
         await db.execute(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +23,7 @@ console.log(`=== MONITOR DE DATOS CONECTADO A: ${urlConfig} ===`);
             );
         `);
 
-        // Comprobamos si el creador está en el trono
+        // 2. 👑 Inyectamos tu trono de Superusuario si la base de datos está virgen
         const resultado = await db.execute({
             sql: "SELECT * FROM usuarios WHERE nombre = ?",
             args: ["manu"]
@@ -38,11 +34,12 @@ console.log(`=== MONITOR DE DATOS CONECTADO A: ${urlConfig} ===`);
                 sql: "INSERT INTO usuarios (nombre, rol) VALUES (?, ?)",
                 args: ["manu", "SUPER_USER"]
             });
-            console.log("[SISTEMA] Superusuario 'manu' inyectado en el núcleo.");
+            console.log("[TURSO] Superusuario 'manu' asegurado en la raíz de la nube.");
         }
     } catch (error) {
-        console.error("[ALERTA] Error inicializando base de datos:", error.message);
+        console.error("[TURSO ALERTA] Fallo al inicializar tablas remotas:", error.message);
     }
 })();
 
+// Exportamos 'db' para que login.js siga funcionando sin tocar nada
 export default db;
