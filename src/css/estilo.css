@@ -1,0 +1,495 @@
+:root {
+    --color-phosphor: #33ff33;
+    --color-bg: #050505;
+    --font-main: "Courier New", monospace;
+}
+
+/* ===== RESET BÁSICO ===== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+
+#boot-screen {
+    position: fixed;
+    inset: 0;
+    background: black;
+    color: #00ff99;
+    font-family: "Courier New", monospace;
+    padding: 20px;
+    font-size: 1.1rem;
+    line-height: 1.3;
+    z-index: 9999;
+}
+
+#boot-lines {
+    white-space: pre-wrap;
+}
+
+.unix-header {
+    font-family: "Courier New", monospace;
+    color: var(--color-phosphor, #00ff99);
+    font-size: 1.05rem;
+    line-height: 1.3;
+    text-transform: none;
+    margin-bottom: 12px;
+    white-space: pre;
+}
+
+/* ===== BODY / PANTALLA PRINCIPAL ===== */
+body.dharma-terminal {
+    background-color: var(--color-bg);
+    color: var(--color-phosphor);
+    font-family: var(--font-main);
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+}
+
+/* ===== EFECTO CRT / PANTALLA ANALÓGICA ===== */
+.crt-overlay {
+    position: fixed;
+    inset: 0;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.03) 50%, rgba(0, 0, 0, 0.2) 50%) 0 0 / 100% 4px,
+        linear-gradient(90deg, rgba(0, 255, 0, 0.05), rgba(0, 255, 0, 0.01), rgba(0, 255, 0, 0.05)) 0 0 / 3px 100%;
+    mix-blend-mode: screen;
+    pointer-events: none;
+    z-index: 20;
+}
+
+/* Ligero desenfoque / glow general */
+body.dharma-terminal::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    background: radial-gradient(circle at 50% 50%, rgba(0, 255, 0, 0.08), transparent 60%);
+    pointer-events: none;
+    z-index: 5;
+}
+
+/* ===== INDICADOR DE ESTADO ===== */
+#status-indicator {
+    width: 100%;
+    text-align: center;
+    padding: 6px 0;
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+    color: var(--color-phosphor);
+    text-shadow: 0 0 6px var(--color-phosphor);
+    border-bottom: 1px solid rgba(0, 255, 0, 0.3);
+    background: rgba(0, 20, 0, 0.4);
+    animation: statusBlink 1.2s infinite;
+    display: none;
+    /* oculto por defecto */
+}
+
+/* Usuario */
+.terminal-user {
+    color: #00eaff;
+    /* cian retro */
+    font-weight: bold;
+}
+
+/* Sistema (respuesta normal) */
+.terminal-system {
+    color: var(--color-phosphor);
+    /* tu verde/ámbar actual */
+}
+
+/* Sistema (error) */
+.terminal-error {
+    color: #ff3b3b;
+    text-shadow: 0 0 6px #ff3b3b;
+}
+
+
+/* Parpadeo suave */
+@keyframes statusBlink {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.45;
+    }
+}
+
+/* Cuando hay juego activo */
+body.game-mode #status-indicator {
+    display: block;
+}
+
+/* Cuando NO hay juego, pero queremos mostrar modo */
+body.normal-mode #status-indicator {
+    display: block;
+}
+
+
+/* LIGERO FLICKER */
+@keyframes screen-flicker {
+
+    0%,
+    100% {
+        opacity: 1;
+    }
+
+    50% {
+        opacity: 0.97;
+    }
+}
+
+body.dharma-terminal {
+    animation: screen-flicker 0.25s infinite;
+}
+
+/* ===== CONTENEDOR PRINCIPAL ===== */
+.terminal-container {
+    display: flex;
+    height: calc(100vh - 40px); /* Ajusta este número según el tamaño de tu cabecera */
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+/* ===== PANEL DE JUEGO (ARRIBA) ===== */
+#game-panel {
+    width: 100%;
+    height: 200px;
+    border-bottom: 1px solid var(--color-phosphor);
+    padding: 10px 20px;
+    display: none;
+    position: relative;
+    z-index: 1;
+    background: radial-gradient(circle at 50% 0%, rgba(0, 40, 0, 0.7), rgba(0, 0, 0, 0.95));
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.35);
+    overflow: hidden;
+}
+
+/* Cuando hay juego activo */
+body.game-mode #game-panel {
+    display: block;
+}
+
+/* ===== TERMINAL IZQUIERDO ===== */
+.output-area {
+    flex: 3;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    line-height: 1.5;
+    padding-right: 10px;
+    font-size: 0.95rem;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-phosphor) #000;
+    border-right: 1px solid rgba(0, 255, 0, 0.3);
+}
+
+/* Scrollbar (WebKit) */
+.output-area::-webkit-scrollbar {
+    width: 6px;
+}
+
+.output-area::-webkit-scrollbar-track {
+    background: #000;
+}
+
+.output-area::-webkit-scrollbar-thumb {
+    background: var(--color-phosphor);
+}
+
+/* Líneas del terminal */
+.output-area div {
+    margin-bottom: 4px;
+}
+
+/* Mensajes del sistema */
+.system-msg {
+    color: var(--color-phosphor);
+    font-weight: bold;
+    text-shadow: 0 0 5px var(--color-phosphor);
+}
+
+/* Comandos del usuario */
+.user-command {
+    color: #66ff66;
+    font-weight: bold;
+}
+
+/* ===== COLUMNA DERECHA: AVATAR + INFO ===== */
+.sidebar-avatar {
+    flex: 1;
+    border-left: 1px solid var(--color-phosphor);
+    padding: 10px 20px 10px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+}
+
+/* MARCO DEL AVATAR */
+.face-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 260px;
+    aspect-ratio: 1 / 1;
+    border: 2px solid var(--color-phosphor);
+    border-radius: 8px;
+    background: radial-gradient(circle at 50% 20%, rgba(0, 40, 0, 0.7), rgba(0, 0, 0, 0.95));
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+    padding: 10px;
+}
+
+#celtigor-avatar svg {
+    width: 90%;
+    height: auto;
+    filter: drop-shadow(0 0 10px var(--color-phosphor));
+    fill: var(--color-phosphor);
+}
+
+/* ===== ZONA DE IMÁGENES / INFO JUEGO ===== */
+#visual-layer {
+    position: relative;
+    width: 100%;
+    max-width: 340px;
+    /* ANTES: 260px */
+    height: 360px;
+    /* ANTES: 220px */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: rgba(0, 20, 0, 0.6);
+    border: 2px solid var(--color-phosphor);
+    border-radius: 6px;
+    box-shadow: 0 0 18px rgba(0, 255, 0, 0.4);
+    overflow: hidden;
+    margin-top: 50px;
+}
+
+
+/* Imagen / holograma */
+#image-display {
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    opacity: 0;
+    transition: opacity 0.5s ease;
+}
+
+/* Info de juego (HUD lateral) */
+#game-info {
+    position: absolute;
+    inset: 0;
+    padding: 8px;
+    font-size: 0.8rem;
+    line-height: 1.3;
+    display: none;
+    color: var(--color-phosphor);
+}
+
+/* Modo juego: la zona se usa como panel de info */
+body.game-mode #visual-layer #image-display {
+    display: none;
+}
+
+body.game-mode #visual-layer #game-info {
+    display: block;
+}
+
+/* Scanlines internas del panel lateral */
+.scanline {
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(rgba(255, 255, 255, 0.03) 50%, rgba(0, 0, 0, 0.2) 50%) 0 0 / 100% 4px;
+    pointer-events: none;
+}
+
+/* Activación de holograma */
+#image-display.active {
+    opacity: 0.6;
+    animation: holoOn 0.8s ease-out;
+}
+
+/* ===== INPUT INFERIOR ===== */
+.input-area {
+    background: #000;
+    padding: 12px 20px;
+    border-top: 1px solid var(--color-phosphor);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+}
+
+.prompt {
+    margin-right: 4px;
+    font-weight: bold;
+    color: var(--color-phosphor);
+}
+
+#user-input {
+    background: transparent;
+    border: none;
+    color: var(--color-phosphor);
+    font-family: var(--font-main);
+    font-size: 1rem;
+    outline: none;
+    flex: 1;
+}
+
+.celtigor-output {
+    color: whitesmoke;      /* verde neón elegante */
+    font-weight: 500;
+}
+
+
+/* ===== ANIMACIONES ===== */
+@keyframes blink {
+    50% {
+        opacity: 0;
+    }
+}
+
+@keyframes holoOn {
+    0% {
+        opacity: 0;
+        filter: brightness(0.2) blur(4px);
+        transform: scale(0.95);
+    }
+
+    40% {
+        opacity: 1;
+        filter: brightness(2) blur(1px);
+        transform: scale(1.05);
+    }
+
+    70% {
+        opacity: 0.7;
+        filter: brightness(1.2) blur(0px);
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0.6;
+        filter: brightness(1) blur(0px);
+    }
+}
+
+/* Indicadores de estado (si los usas) */
+.status-indicator {
+    margin-top: 8px;
+    font-size: 0.8rem;
+    animation: blink 1s infinite;
+}
+
+/* ===== EFECTO DE ENCENDIDO CRT ===== */
+@keyframes crt-on {
+    0% {
+        opacity: 0;
+        transform: scaleY(0.05) scaleX(1.2);
+        filter: brightness(400%) blur(4px);
+    }
+
+    20% {
+        opacity: 1;
+        transform: scaleY(0.2) scaleX(1.05);
+        filter: brightness(250%) blur(2px);
+    }
+
+    40% {
+        transform: scaleY(1.1) scaleX(1);
+        filter: brightness(150%) blur(1px);
+    }
+
+    60% {
+        transform: scaleY(0.95) scaleX(1);
+        filter: brightness(120%) blur(0px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scaleY(1) scaleX(1);
+        filter: brightness(100%);
+    }
+}
+
+/* Aplicación del efecto al panel */
+#visual-layer.crt-on,
+#game-panel.crt-on {
+    animation: crt-on 0.45s ease-out;
+}
+
+/* Animación CRT al imprimir */
+.crt-line {
+    animation: crt-appear 0.12s ease-out;
+}
+
+@keyframes crt-appear {
+    0% {
+        opacity: 0;
+        filter: blur(2px);
+    }
+
+    40% {
+        opacity: 0.6;
+        filter: blur(1px);
+    }
+
+    100% {
+        opacity: 1;
+        filter: blur(0);
+    }
+}
+
+/* Cursor normal visible como fallback */
+#user-input {
+    caret-color: var(--color-phosphor);
+    position: relative;
+}
+
+/* Cursor CRT fosforito */
+#user-input.crt-active::after {
+    content: "";
+    position: absolute;
+    left: calc(1ch * var(--cursor-pos, 0));
+    top: 4px;
+    width: 10px;
+    height: 18px;
+    background: var(--color-phosphor);
+    box-shadow: 0 0 6px var(--color-phosphor), 0 0 12px var(--color-phosphor);
+    animation: crt-cursor-blink 0.7s steps(1) infinite;
+    pointer-events: none;
+}
+
+/* Parpadeo CRT */
+@keyframes crt-cursor-blink {
+    0% { opacity: 1; }
+    45% { opacity: 1; }
+    50% { opacity: 0; }
+    95% { opacity: 0; }
+    100% { opacity: 1; }
+}
+
+.prompt {
+    color: #00ff88; /* verde fósforo */
+    font-weight: bold;
+    margin-right: 6px;
+    text-shadow: 0 0 4px #00ff88;
+}
+
+
+
+
+
+
+

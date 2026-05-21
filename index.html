@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CELTIGOR_CORE v1.0</title>
+    <link rel="stylesheet" href="./src/css/estilo.css">
+    <script type="module" src="./main.js"></script>
+
+</head>
+
+<body class="dharma-terminal">
+
+    <!-- BOOT SEQUENCE -->
+    <div id="boot-screen">
+        <audio id="ibm360-sound" src="./src/assets/boot.mp3" preload="auto"></audio>
+        <pre id="boot-lines"></pre>
+    </div>
+
+    <!-- TODA LA INTERFAZ VA AQUÍ DENTRO -->
+    <div id="ui-wrapper" style="display:none;">
+
+        <!-- PANEL DE JUEGO -->
+        <div id="game-panel"></div>
+
+        <!-- CONTENEDOR PRINCIPAL -->
+        <main class="terminal-container">
+
+            <!-- COLUMNA IZQUIERDA: TERMINAL -->
+            <section class="output-area" id="terminal-output">
+                <div id="terminal-header" class="unix-header">
+                    <div>
+                        CELTIGOR System λ Release 3.2 |
+                        <span id="status-indicator">Mode: ACTIVE</span>
+                    </div>
+                </div>
+                <div id="terminal-lines"></div>
+            </section>
+
+            <!-- COLUMNA DERECHA -->
+            <aside class="sidebar-avatar">
+                <div id="celtigor-avatar" class="face-wrapper"></div>
+             
+
+                <div id="visual-layer">
+                    <div id="image-display"></div>
+                    <div id="game-info"></div>
+                    <div class="scanline"></div>
+                </div>
+              
+            </aside>
+
+        </main>
+
+        <!-- INPUT -->
+        <div class="input-area">
+            <span id="prompt" class="prompt"></span>
+            <input id="user-input" type="text" autocomplete="off" autofocus />
+        </div>
+
+    </div>
+
+</body>
+
+
+</html>
