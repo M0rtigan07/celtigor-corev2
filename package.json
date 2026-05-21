@@ -4,12 +4,13 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "npx serve .",
-    "build": "echo 'Sin compilación. Celtigor Core cargando directamente.'"
-  },
+  "start": "node server.js",
+  "dev": "node --import=dotenv/config server.js"
+},
   "dependencies": {
     "@libsql/client": "^0.17.3",
     "better-sqlite3": "^12.10.0",
+    "dotenv": "^17.4.2",
     "express": "^5.2.1"
   }
 }

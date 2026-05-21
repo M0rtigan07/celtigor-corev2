@@ -22,41 +22,155 @@ export async function executeCommand(cmd, linesContainer) {
                 break;
             }
 
+            const nombreLogin = arg.trim().toLowerCase();
             beepDouble();
-            printLine(`[SISTEMA] Solicitando autorización para el operador '${arg}'...`, "terminal-system");
+            printLine(`[SISTEMA] Solicitando autorización y verificando firmas para '${nombreLogin}'...`, "terminal-system");
+
+            // 🔍 Buscamos si este navegador tiene guardada una llave para este usuario concreto
+            const llaveGuardada = localStorage.getItem(`celtigor_key_${nombreLogin}`) || "";
 
             try {
-                // Llamamos a nuestra Serverless Function en Node.js
                 const respuesta = await fetch('/api/usuarios/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ nombre: arg })
+                    body: JSON.stringify({
+                        nombre: nombreLogin,
+                        llaveCliente: llaveGuardada // Mandamos la firma oculta
+                    })
                 });
 
                 const datos = await respuesta.json();
 
                 if (respuesta.ok) {
-                    // Guardamos al operador en la sesión activa de la terminal
                     usuarioActual = { nombre: datos.nombre, rol: datos.rol };
+
+                    // 💾 Guardamos la llave que nos da el servidor para que nadie más la use desde otra máquina
+                    localStorage.setItem(`celtigor_key_${datos.nombre}`, datos.llave);
+
                     beepDouble();
+                    printLine(`[OK] ACCESO CONCEDIDO. Bienvenido al núcleo, ${datos.nombre}.`, "terminal-system");
 
-                    printLine(`[OK] ACCESO CONCEDIDO. Bienvenido de nuevo, ${datos.nombre}.`, "terminal-system");
-
-                    // 👑 Si eres tú, el sistema rinde honores
                     if (datos.rol === 'SUPER_USER') {
-                        printLine("⚠️ [ALERTA] PRIVILEGIOS DE RAÍZ (ROOT) DETECTADOS. MODO CREADOR ACTIVO.", "terminal-system");
+                        printLine("⚠️ [ALERTA] PRIVILEGIOS DE RAÍZ (ROOT) DETECTADOS. MODO CREADOR ACTIVO.", "terminal-error");
                     }
 
-                    // 🟢 Cambiar el prompt visual de la pantalla
                     actualizarPromptVisual();
-
                 } else {
                     beepError();
                     printLine(`[ACCESO DENEGADO]: ${datos.error}`, "terminal-error");
                 }
             } catch (err) {
                 beepError();
-                printLine(`[FALLO CRÍTICO DE ENLACE CORESUDO]: No se pudo contactar con SQLite.`, "terminal-error");
+                printLine(`[FALLO CRÍTICO DE ENLACE]: No se pudo contactar con el servidor remotos.`, "terminal-error");
+            }
+            break;
+
+        // ==========================================
+        // COMANDO: BACKUP (EXPORTAR IDENTIDAD)
+        // ==========================================
+        case "backup":
+            if (usuarioActual.nombre === "guest") {
+                beepError();
+                printLine("[ERROR] Imposible exportar sesión. Actualmente opera como 'guest'. Primero inicie sesión.", "terminal-error");
+                break;
+            }
+
+            printLine("[SISTEMA] Compilando matriz de identidad y empaquetando credenciales...", "terminal-system");
+
+            try {
+                // 1. Recuperamos la llave real que Turso asignó a este usuario
+                const llaveSecreta = localStorage.getItem(`celtigor_key_${usuarioActual.nombre}`);
+
+                if (!llaveSecreta) {
+                    throw new Error("No se encontró la firma digital en los sectores locales.");
+                }
+
+                // 2. Estructuramos el objeto de datos que queremos salvar
+                const datosSesion = {
+                    nombre: usuarioActual.nombre,
+                    llave: llaveSecreta
+                };
+
+                // 3. Ofuscamos/Ciframos los datos en Base64 para que no sea texto plano legible
+                const cadenaTexto = JSON.stringify(datosSesion);
+                const datosCifrados = btoa(encodeURIComponent(cadenaTexto)); // Cifrado básico de transporte
+
+                // 4. Creamos un archivo virtual en la memoria del navegador y forzamos la descarga
+                const blob = new Blob([datosCifrados], { type: "application/octet-stream" });
+                const urlDescarga = URL.createObjectURL(blob);
+
+                const elementoAncla = document.createElement("a");
+                elementoAncla.href = urlDescarga;
+                elementoAncla.download = `${usuarioActual.nombre}_celtigor.key`; // Nombre del archivo guardado
+                document.body.appendChild(elementoAncla);
+                elementoAncla.click();
+
+                // Limpieza de memoria
+                document.body.removeChild(elementoAncla);
+                URL.revokeObjectURL(urlDescarga);
+
+                beepDouble();
+                printLine(`[OK] ARCHIVO DE IDENTIDAD GENERADO: '${usuarioActual.nombre}_celtigor.key'. Guarde este archivo en un lugar seguro.`, "terminal-system");
+            } catch (err) {
+                beepError();
+                printLine(`[FALLO CRÍTICO EN EXPORTACIÓN]: ${err.message}`, "terminal-error");
+            }
+            break;
+
+        // ==========================================
+        // COMANDO: IMPORT (LEER ARCHIVO DE IDENTIDAD)
+        // ==========================================
+        case "import":
+            printLine("[SISTEMA] Inicializando lector óptico. Por favor, seleccione su archivo '.key' de identidad...", "terminal-system");
+
+            try {
+                // 1. Creamos dinámicamente un selector de archivos HTML en segundo plano
+                const inputArchivo = document.createElement("input");
+                inputArchivo.type = "file";
+                inputArchivo.accept = ".key"; // Solo permitimos extensiones .key
+
+                inputArchivo.onchange = async (evento) => {
+                    const archivo = evento.target.files[0];
+                    if (!archivo) return;
+
+                    printLine(`[SISTEMA] Leyendo sectores del archivo: ${archivo.name}...`, "terminal-system");
+
+                    const lector = new FileReader();
+
+                    lector.onload = async (e) => {
+                        try {
+                            const contenidoCifrado = e.target.result;
+
+                            // 2. Deshacemos el cifrado/ofuscación Base64
+                            const cadenaDescifrada = decodeURIComponent(atob(contenidoCifrado));
+                            const datosRestaurados = JSON.parse(cadenaDescifrada);
+
+                            if (!datosRestaurados.nombre || !datosRestaurados.llave) {
+                                throw new Error("Estructura de matriz corrupta o ilegible.");
+                            }
+
+                            // 3. Inyectamos los datos restaurados en el LocalStorage de este nuevo navegador
+                            localStorage.setItem(`celtigor_key_${datosRestaurados.nombre}`, datosRestaurados.llave);
+
+                            beepDouble();
+                            printLine(`[OK] Llave criptográfica inyectada con éxito para el operador: '${datosRestaurados.nombre}'.`, "terminal-system");
+                            printLine(`[SISTEMA] Ejecute el comando 'login ${datosRestaurados.nombre}' para sincronizar con Turso.`, "terminal-system");
+
+                        } catch (errorDeLectura) {
+                            beepError();
+                            printLine("[ERROR] El archivo de llave está corrupto, alterado o no pertenece al protocolo Celtigor OS.", "terminal-error");
+                        }
+                    };
+
+                    lector.readAsText(archivo);
+                };
+
+                // Disparamos la ventana nativa del sistema operativo para elegir el archivo
+                inputArchivo.click();
+
+            } catch (err) {
+                beepError();
+                printLine(`[FALLO CRÍTICO EN LECTURA]: ${err.message}`, "terminal-error");
             }
             break;
 
@@ -77,6 +191,9 @@ export async function executeCommand(cmd, linesContainer) {
                 "Servicios indexados en el sistema operativo Celtigor:",
                 "  help               - Despliega este menú de diagnóstico analógico.",
                 "  clear / clean      - Purga las líneas del monitor conservando el kernel.",
+                "  login <nombre>     - Identifica al operador en el núcleo de datos.",
+                "  backup             - Exporta un archivo cifrado '.key' con tu identidad.",
+                "  import             - Lee un archivo '.key' para restaurar tu sesión en esta máquina.",
                 "  status             - Testea el estado lógico del sintetizador.",
                 "  version            - Muestra la compilación actual del Core.",
                 "  time               - Devuelve la estampa horaria local del sistema.",
@@ -84,6 +201,7 @@ export async function executeCommand(cmd, linesContainer) {
                 "  ia <pregunta>      - Abre ráfaga de datos segura con Celtigor."
             ].join("\n"), "terminal-system");
             break;
+
 
         case "status":
             beepDouble();
@@ -143,12 +261,12 @@ export async function executeCommand(cmd, linesContainer) {
 // Función auxiliar para re-escribir el prompt en pantalla
 function actualizarPromptVisual() {
     // 🎯 Apuntamos directamente al ID del span que está antes del input
-    const promptElemento = document.getElementById('prompt'); 
-    
+    const promptElemento = document.getElementById('prompt');
+
     if (promptElemento) {
         // Si tu rol de SQLite es SUPER_USER te ponemos 'root', si no, tu nombre
         const prefijo = usuarioActual.rol === 'SUPER_USER' ? 'root' : usuarioActual.nombre;
-        
+
         // Modificamos el contenido del span manteniendo tu estética retro
         promptElemento.textContent = `${prefijo}@celtigor:~$`;
         console.log(`[DOM] Etiqueta del prompt cambiada a: ${prefijo}`);

@@ -1,45 +1,53 @@
-// api/database.js
+// api/db/database.js
 import { createClient } from "@libsql/client";
 
-// 🔌 Conexión oficial directa con Turso usando tus variables de entorno
+// Configuración híbrida: prioriza Turso, si no, usa archivo local
+const urlConfig = process.env.TURSO_DATABASE_URL || "file:local_celtigor.db";
+const tokenConfig = process.env.TURSO_AUTH_TOKEN || "";
+
 const db = createClient({
-    url: process.env.TURSO_DATABASE_URL,
-    authToken: process.env.TURSO_AUTH_TOKEN,
+    url: urlConfig,
+    authToken: tokenConfig
 });
 
-console.log("=== SISTEMA CONECTADO AL NÚCLEO DE TURSO DE FORMA DIRECTA ===");
+console.log(`=== [NÚCLEO] CONECTANDO A BASE DE DATOS: ${urlConfig} ===`);
 
-// Ejecutamos la creación de la tabla en segundo plano al arrancar el servidor
+// RUTA DE INICIALIZACIÓN FORZADA
 (async () => {
     try {
-        // 1. Creamos la tabla de usuarios si no existe en tu base de datos de Turso
+        // 1. Forzamos la creación de la tabla. Esto obligará a crear el archivo 'local_celtigor.db' en tu raíz.
         await db.execute(`
             CREATE TABLE IF NOT EXISTS usuarios (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 nombre TEXT UNIQUE NOT NULL,       
+                llave TEXT NOT NULL,                
                 puntuacion INTEGER DEFAULT 0,       
                 rol TEXT DEFAULT 'OPERADOR_LVL1',   
                 ultimo_acceso TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             );
         `);
+        console.log("[NÚCLEO] Estructura de tabla 'usuarios' verificada/creada.");
 
-        // 2. 👑 Inyectamos tu trono de Superusuario si la base de datos está virgen
-        const resultado = await db.execute({
+        // 2. Comprobamos si el administrador 'manu' ya está dentro de esta base de datos
+        const checkRoot = await db.execute({
             sql: "SELECT * FROM usuarios WHERE nombre = ?",
             args: ["manu"]
         });
         
-        if (resultado.rows.length === 0) {
+        // 3. Si no existe en esta base de datos local, lo inyectamos con tu clave maestra
+        if (checkRoot.rows.length === 0) {
             await db.execute({
-                sql: "INSERT INTO usuarios (nombre, rol) VALUES (?, ?)",
-                args: ["manu", "SUPER_USER"]
+                sql: "INSERT INTO usuarios (nombre, rol, llave) VALUES (?, ?, ?)",
+                args: ["manu", "SUPER_USER", "MI_LLAVE_SECRETA_ROOT_123"]
             });
-            console.log("[TURSO] Superusuario 'manu' asegurado en la raíz de la nube.");
+            console.log("⚠️ [SEGURIDAD] Superusuario 'manu' creado con éxito en la base de datos local.");
+        } else {
+            console.log(`[SEGURIDAD] Superusuario 'manu' detectado en el sistema. Llave esperada: [${checkRoot.rows[0].llave}]`);
         }
+
     } catch (error) {
-        console.error("[TURSO ALERTA] Fallo al inicializar tablas remotas:", error.message);
+        console.error("[ERROR CRÍTICO] Fallo al inicializar los sectores de la base de datos:", error.message);
     }
 })();
 
-// Exportamos 'db' para que login.js siga funcionando sin tocar nada
 export default db;
