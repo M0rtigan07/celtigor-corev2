@@ -1,8 +1,8 @@
 // src/js/main.js
-import { initTerminal } from "./src/js/terminal.js";
-import { initInput } from "./src/js/input.js";
-import { initAvatar } from "./src/js/avatar.js";
-import { enterNormalMode, setPrompt } from "./src/js/ui.js";
+import { initTerminal } from "./js/terminal.js";
+import { initInput } from "./js/input.js";
+import { initAvatar } from "./js/avatar.js";
+import { enterNormalMode, setPrompt } from "./js/ui.js";
 
 document.addEventListener("DOMContentLoaded", () => {
     // 1. Cargamos buffers visuales estáticos y el rostro SVG de Visión

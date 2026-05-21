@@ -1,5 +1,4 @@
 // src/js/terminal/commandRouter.js
-const { invoke } = window.__TAURI__.core; // Inyector nativo de Tauri
 import { printLine } from "./terminal.js";
 import { beepError, beepDouble } from "./sound.js";
 
