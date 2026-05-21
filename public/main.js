@@ -59,7 +59,7 @@ function runRetroBootSequence() {
             // 🔊 Fade-out del motor de audio al completarse la carga
             if (ibmSound) {
                 const fade = setInterval(() => {
-                    ibmSound.volume -= 0.05;
+                    //ibmSound.volume -= 0.05;
                     if (ibmSound.volume <= 0) {
                         clearInterval(fade);
                         ibmSound.pause();
